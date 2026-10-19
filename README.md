@@ -1,77 +1,66 @@
-# Linux Firewall: Traffic Filtering with iptables
+# Linux Firewall Lab: Packet Filtering with iptables
 
-**Focus:** Network security · Linux · iptables · Wireshark · troubleshooting  
-**Course context:** CSCI 412 (Information Security), John Jay College of Criminal Justice  
-**Status:** **Completed in an isolated Labtainer environment.** Four screenshots below are extracted from the submitted lab report; the HTTP counter screenshot is in the downloadable portfolio archive.
+A hands-on firewall exercise completed for **CSCI 412: Information Security** at John Jay College of Criminal Justice.
 
-## Goal
-Configure a Linux firewall between a client and a server. Permit explicitly allowed services, block disallowed traffic, inspect connection attempts, and verify security rules using logs, packet captures, and packet counters.
+## Objective
 
-## Lab topology
+Configure a Linux firewall between a client and server, control which TCP connections can pass, and verify the outcome using packet inspection, firewall logs, and rule counters.
+
+## Topology
 
 ```mermaid
 flowchart LR
-    C["Client\n172.24.0.3"] -->|"TCP/SSH/HTTP test traffic"| F["Linux firewall\niptables, NFLOG, Wireshark"]
-    F -->|"Filtered forwarding"| S["Server\n172.25.0.3"]
+    C["Client<br/>172.24.0.3"] --> F["Linux firewall<br/>iptables"]
+    F --> S["Server<br/>172.25.0.3"]
 ```
 
-These IP addresses belong to the isolated course lab. They are **not** public production infrastructure.
+The addresses are private addresses from an isolated Labtainer environment.
 
 ## Tools
-- Linux / Ubuntu terminal, Bash
-- `iptables` and `iptables` connection state matching (`conntrack`)
-- Wireshark for inspection of TCP SYN attempts
-- SSH, `wget`, the lab's `wizbang` test program
-- `tail` for firewall log inspection
 
-## Work performed
-1. Inspected initial filter chains (`sudo iptables -L -v -n`); they had default ACCEPT policies.
-2. Executed the course's `example_fw.sh`, which cleared rules and set DROP policies.
-3. Inspected stateful forwarding rules that allowed established/related sessions and TCP destination port 22 (SSH).
-4. Attempted SSH on port 2222; observed blocked connection attempts logged with `IPTABLES DROPPED` and destination port `2222`.
-5. Inspected Wireshark SYN attempts to the lab's TCP port `10071`, inserted an ACCEPT rule for that client→server service, and successfully retried `./wizbang server`.
-6. Placed a more specific HTTP DROP rule ahead of other forwarding rules; `wget` then timed out.
-7. Reapplied the edited firewall script and inspected the resultant counters and ordering.
+Linux, Bash, iptables, Wireshark, SSH, wget, and firewall log inspection.
 
-## Results: original screenshots
+## Procedure and observations
 
-**Firewall script configuration:** default DROP and explicit SSH allow, with an NFLOG rule for unmatched traffic.  
-![Screenshot of the lab's example firewall configuration](screenshots/01-original-firewall-config.png)
-
-**Firewall drop log:** blocked attempts to TCP port 2222 (see submitted report for surrounding explanation).  
-![Original firewall log of blocked SSH port 2222 attempt](screenshots/02-blocked-port-2222.png)
-
-**Application/service testing:** successful `wizbang` test after an explicit TCP port 10071 permit.  
-![Original successful lab service run](screenshots/03-wizbang-service.png)
-
-**HTTP blocking verification:** `wget` times out; the HTTP DROP rule showed **5 packets / 300 bytes**.  
-The original HTTP timeout and counter screenshot is retained in the [complete portfolio archive](https://github.com/eronivaka-svg/linux-firewall-iptables-lab) only as documented coursework; image upload is pending. The screenshot is included in the downloadable project ZIP.
-
-**Configuration reapplied:** script saved and run again, with `sudo iptables -L` confirming updated rules.  
-![Original final firewall rule listing](screenshots/05-final-rule-list.png)
-
-### Observations
-| Test | Observed outcome | Evidence |
+| Test | Action | Observed result |
 | --- | --- | --- |
-| Initial firewall listing | ACCEPT policy, no filter rules | Original submitted report |
-| SSH to non-allowed port 2222 | Dropped; `IPTABLES DROPPED` entries with TCP SYN | Original log screenshot |
-| Custom service to TCP port 10071 | Connected after adding explicit permit rule | Terminal output screenshot |
-| HTTP from client to server | `wget` timed out | Terminal output screenshot |
-| HTTP blocking counters | Rule matched 5 packets / 300 bytes | Rule-counter screenshot |
-| Reapply after editing script | Rules visible after running script again | Final screenshot |
+| Baseline | Listed the filter chains with `sudo iptables -L -v -n` | The initial chains used ACCEPT policies |
+| Default-deny | Ran the course-provided `example_fw.sh` | The configuration applied DROP policies and allowed selected traffic |
+| Blocked SSH port | Tried `ssh -p 2222 server` | Log entries showed TCP SYN attempts dropped for destination port 2222 |
+| Additional service | Inspected TCP SYN packets for port 10071 and added a targeted ACCEPT rule | The lab's `wizbang` service completed successfully |
+| HTTP block | Inserted a client-to-server DROP rule for TCP port 80 | `wget` timed out; the recorded rule counter reached 5 packets / 300 bytes |
+| Verification | Reran the modified firewall script and inspected the rule listing | Updated rules appeared in the expected order |
 
-## Configuration and reproducibility
-- [`configs/lab-firewall-reconstruction.sh`](configs/lab-firewall-reconstruction.sh) is an **annotated reconstruction** from the screenshots and documented commands. It is not represented as the byte-for-byte source of the original `example_fw.sh`.
-- [`notes/observed-commands.md`](notes/observed-commands.md) separates the commands/results supported by the original report from the reconstructed script.
+## Evidence from my lab submission
 
-> [!CAUTION]
-> Do **not** run the reconstructed script on your laptop, normal Linux host, home router, or cloud server. It changes default firewall policies to DROP and can cut off your network/SSH access. It is guarded and intended **only** for a disposable isolated Labtainer firewall container after reviewing the contents.
+These are screenshots from the original CSCI 412 lab report, not generated examples.
 
-## What I would improve
-- Export an original `iptables-save` ruleset in addition to screenshots, so rules can be compared with a known state.
-- Record a short test matrix with timestamps, source/destination, port, expected result, and measured result.
-- Add safe reset/rollback handling and demonstrate restoration after restarting the lab (a saved script alone does **not** prove boot-time persistence).
-- Automate rule verification inside a disposable network namespace or VM.
+**Firewall configuration**
 
-## Academic integrity and provenance
-The testing, observations, and screenshots come from completed CSCI 412 coursework. The original lab PDF contains the screenshot evidence. The annotated script in this repository was **reconstructed later for the public portfolio** from the submitted report and is labelled accordingly. No enterprise environment or professional employment is claimed.
+![Firewall configuration shown in the lab terminal](screenshots/01-original-firewall-config.png)
+
+**Rejected SSH connection**
+
+![Log entries from a connection attempt to port 2222](screenshots/02-blocked-port-2222.png)
+
+**Service allowed after rule change**
+
+![Successful wizbang service execution](screenshots/03-wizbang-service.png)
+
+**Final rule listing**
+
+![Firewall rules after reapplying the configuration](screenshots/05-final-rule-list.png)
+
+The submitted lab report also recorded the `wget` timeout and HTTP DROP counter. Its separate screenshot is not included here; the four images above are the evidence currently published.
+
+## What I learned
+
+Firewall rule order matters. A broad allow rule can override the intent of a later deny rule, while a default-deny policy requires explicit permissions for the services being tested. Logs, packet captures, and rule counters help distinguish a networking fault from intentional filtering.
+
+## Possible improvements
+
+- Save the original `iptables-save` output alongside the screenshots.
+- Turn the tests into a repeatable table of allowed/blocked connections with timestamps.
+- Test restoring rules after a container restart and document a rollback process.
+
+**Scope:** Academic network lab, not a production firewall deployment. The original course script was not preserved in this repository; I have chosen to publish the genuine test evidence rather than a reconstructed substitute.
