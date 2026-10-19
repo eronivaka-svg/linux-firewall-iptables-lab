@@ -2,7 +2,7 @@
 
 **Focus:** Network security · Linux · iptables · Wireshark · troubleshooting  
 **Course context:** CSCI 412 (Information Security), John Jay College of Criminal Justice  
-**Status:** **Completed in an isolated Labtainer environment.** Screenshots below are extracted from my submitted lab report, not mockups.
+**Status:** **Completed in an isolated Labtainer environment.** Four screenshots below are extracted from the submitted lab report; the HTTP counter screenshot is in the downloadable portfolio archive.
 
 ## Goal
 Configure a Linux firewall between a client and a server. Permit explicitly allowed services, block disallowed traffic, inspect connection attempts, and verify security rules using logs, packet captures, and packet counters.
@@ -45,7 +45,7 @@ These IP addresses belong to the isolated course lab. They are **not** public pr
 ![Original successful lab service run](screenshots/03-wizbang-service.png)
 
 **HTTP blocking verification:** `wget` times out; the HTTP DROP rule showed **5 packets / 300 bytes**.  
-![Original HTTP timeout and forwarding-rule counters](screenshots/04-http-drop-verified.png)
+The original HTTP timeout and counter screenshot is retained in the [complete portfolio archive](https://github.com/eronivaka-svg/linux-firewall-iptables-lab) only as documented coursework; image upload is pending. The screenshot is included in the downloadable project ZIP.
 
 **Configuration reapplied:** script saved and run again, with `sudo iptables -L` confirming updated rules.  
 ![Original final firewall rule listing](screenshots/05-final-rule-list.png)
